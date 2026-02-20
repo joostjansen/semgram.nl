@@ -43,7 +43,7 @@ The original `semgram` was designed for English and relies on ClearNLP-style dep
 
 ```r
 # Install from GitHub
-devtools::install_github("your-username/semgram.nl")
+devtools::install_github("joostjansen/semgram.nl")
 ```
 
 ### Prerequisites
