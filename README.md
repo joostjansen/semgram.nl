@@ -1,6 +1,6 @@
 # semgram.nl: Extracting Semantic Motifs from Dutch Textual Data
 
-`semgram.nl` is a Dutch language adaptation of the [`semgram`](https://github.com/omstuhler/semgram) R package by Oscar Stuhler for extracting semantic motifs around entities in textual data. Like the original, `semgram.nl` uses an entity-centered semantic grammar that distinguishes six classes of motifs: **actions** of an entity, **treatments** of an entity, **agents** acting upon an entity, **patients** acted upon by an entity, **characterizations** of an entity, and **possessions** of an entity. This adaptation of the orginal package was created with the help of Claude Opus 4.6.
+`semgram.nl` is a Dutch language adaptation of the [`semgram`](https://github.com/omstuhler/semgram) R package by Oscar Stuhler for extracting semantic motifs around entities in textual data. Like the original, `semgram.nl` uses an entity-centered semantic grammar that distinguishes six classes of motifs: **actions** of an entity, **treatments** of an entity, **agents** acting upon an entity, **patients** acted upon by an entity, **characterizations** of an entity, and **possessions** of an entity.
 
 This package adapts the comprehensive set of extraction rules from the original `semgram` to work with **Dutch syntax**, **Universal Dependencies labels** (as output by spaCy's Dutch models), and **Dutch lemmas**.
 
