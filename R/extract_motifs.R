@@ -164,10 +164,34 @@ extract_motifs = function(tokens,
   # --------------------------------------------------------------------------
   # Handle appositional modifiers
   # --------------------------------------------------------------------------
+  # If use_appos = TRUE, we expand the entity list to include tokens that are
+  # linked to known entities via appositional modifier relations ('appos').
+  # E.g., in "Mijn broer Emil won", if entity = "Emil", we also consider
+  # "broer" as equivalent to the entity for extraction purposes.
 
-  appos_child = NULL
   if (use_appos){
-    appos_child = "appos"
+    appos_tokens = tokens[tokens$dep_rel == "appos", ]
+    for (ent in entities) {
+      # Find heads of appos relations where the entity is the appos modifier
+      appos_heads = appos_tokens[appos_tokens$token == ent, "head_token_id", drop = FALSE]
+      if (nrow(appos_heads) > 0) {
+        for (j in 1:nrow(appos_heads)) {
+          head_id = appos_heads$head_token_id[j]
+          # Find what token this head_id corresponds to (within same doc/sentence)
+          head_row = appos_tokens[appos_tokens$token == ent, ]
+          if (nrow(head_row) > 0) {
+            d_id = head_row$doc_id[j]
+            s_id = head_row$sentence_id[j]
+            head_tok = tokens[tokens$doc_id == d_id &
+                              tokens$sentence_id == s_id &
+                              tokens$token_id == head_id, "token"]
+            if (nrow(head_tok) > 0) {
+              entities = unique(c(entities, head_tok$token))
+            }
+          }
+        }
+      }
+    }
   }
 
   # --------------------------------------------------------------------------

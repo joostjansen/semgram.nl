@@ -9,7 +9,7 @@ NULL
 At_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "treatment", fill = F,
-                children(OR(token = entities, appos_child = "appos_child"),
+                children(token = entities,
                          relation = c("obj", "iobj"),
                          label = "Entity", fill = F),
                 children(pos = c("NOUN", "PROPN", "PRON"),
@@ -33,7 +33,7 @@ At_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Rule At_2: Agent as subject of treatment verb (entity as conj of obj)
 
 At_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(OR(token = entities, appos_child = "appos_child"),
+  rule = tquery(token = entities,
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = agent_patient_pos,
@@ -65,7 +65,7 @@ At_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 At_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "treatment", fill = F,
-                children(OR(token = entities, appos_child = "appos_child"),
+                children(token = entities,
                          relation = "nsubj:pass",
                          label = "Entity", fill = F),
                 children(pos = c("NOUN", "PROPN", "PRON"),
@@ -99,7 +99,7 @@ At_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
                 children(pos = verb_pos, relation = "xcomp",
                          label = "treatment", fill = F,
                          not_children(relation = "nsubj", depth = 1),
-                         children(OR(token = entities, appos_child = "appos_child"),
+                         children(token = entities,
                                   relation = c("obj", "iobj"),
                                   label = "Entity", fill = F))
   )
@@ -120,7 +120,7 @@ At_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos, relation = "conj",
                 label = "treatment", fill = F,
                 not_children(relation = "nsubj", depth = 1),
-                children(OR(token = entities, appos_child = "appos_child"),
+                children(token = entities,
                          relation = c("obj", "iobj"),
                          label = "Entity", fill = F),
                 parents(pos = verb_pos,
