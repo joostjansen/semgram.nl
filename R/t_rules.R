@@ -9,7 +9,7 @@ NULL
 t_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "treatment", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = c("obj", "iobj"),
                          label = "Entity", fill = F)
   )
@@ -28,7 +28,7 @@ t_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Example: "Jan belt Peter en Emil." (belt -> bellen)
 
 t_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = agent_patient_pos,
@@ -54,7 +54,7 @@ t_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 t_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "treatment", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj:pass",
                          label = "Entity", fill = F)
   )
@@ -73,7 +73,7 @@ t_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Example: "Peter en Emil werden gebeld." (gebeld -> bellen)
 
 t_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN", "PRON"),
@@ -98,7 +98,7 @@ t_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 t_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos, relation = "xcomp",
                 label = "treatment", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = c("obj", "iobj"),
                          label = "Entity", fill = F)
   )
@@ -119,7 +119,7 @@ t_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 t_6 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos, relation = "conj",
                 label = "treatment", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = c("obj", "iobj"),
                          label = "Entity", fill = F)
   )
@@ -138,7 +138,7 @@ t_6 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Example: "Jan kwam en vroeg Peter en Emil." (vroeg -> vragen)
 
 t_7 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = agent_patient_pos,

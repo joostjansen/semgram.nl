@@ -44,6 +44,14 @@
 #' @param pron_as_ap Should pronouns be considered agents and patients? Defaults to FALSE.
 #' @param use_appos Should things linked to an entity via an appositional modifier
 #'   be considered as equivalent to the entity? Defaults to TRUE.
+#' @param merge_separable_verbs Should separable verb particles (compound:prt) be
+#'   merged into the verb lemma? E.g., "belde" + "op" becomes "opbellen" instead
+#'   of just "bellen". This is essential for Dutch, where separable verbs are
+#'   extremely common and carry distinct meanings. Defaults to TRUE.
+#' @param reflexive_as_patient Should reflexive pronouns ("zich", "zichzelf") be
+#'   considered as valid patients/objects for treatment and action-patient extraction,
+#'   regardless of the pron_as_ap setting? This captures constructions like
+#'   "migranten verdedigen zichzelf". Defaults to FALSE.
 #' @param lowercase Should all tokens and lemmas be lowercased? Defaults to FALSE.
 #' @param verbose Should progress be reported during execution? Defaults to FALSE.
 #'
@@ -87,6 +95,8 @@ extract_motifs = function(tokens,
                           aux_verb_markup = T,
                           pron_as_ap = F,
                           use_appos = T,
+                          merge_separable_verbs = T,
+                          reflexive_as_patient = F,
                           lowercase = F,
                           verbose = F){
 
@@ -119,6 +129,70 @@ extract_motifs = function(tokens,
   if (lowercase){
     tokens$token = tolower(tokens$token)
     tokens$lemma = tolower(tokens$lemma)
+  }
+
+  # --------------------------------------------------------------------------
+  # Reconstruct separable verbs (Dutch-specific preprocessing)
+  # --------------------------------------------------------------------------
+  # In Dutch, separable prefix verbs ("scheidbare werkwoorden") split in main
+  # clauses: "Hij belde haar op" → "belde" (lemma: bellen) + "op" (compound:prt).
+  # The full verb is "opbellen", not "bellen". Without merging, action motifs
+  # are systematically fragmented (a_bellen instead of a_opbellen).
+  #
+  # spaCy marks the particle with dep_rel = "compound:prt". We merge the
+  # particle into the verb's lemma: particle + verb_lemma → combined_lemma.
+  #
+  # Note: In subordinate clauses ("dat hij haar opbelt"), spaCy's lemmatizer
+  # often already produces "opbellen". We check for this to avoid double-prefixing.
+
+  if (merge_separable_verbs){
+    prt_rows = tokens[tokens$dep_rel == "compound:prt", ]
+
+    if (nrow(prt_rows) > 0) {
+      if (verbose) cat("Merging", nrow(prt_rows), "separable verb particles...\n")
+
+      for (i in 1:nrow(prt_rows)) {
+        particle = tolower(prt_rows$lemma[i])
+        head_idx = which(tokens$doc_id == prt_rows$doc_id[i] &
+                         tokens$sentence_id == prt_rows$sentence_id[i] &
+                         tokens$token_id == prt_rows$head_token_id[i])
+
+        if (length(head_idx) > 0) {
+          current_lemma = tokens$lemma[head_idx]
+
+          # Only merge if the lemma doesn't already start with the particle
+          # (handles cases where spaCy already reconstructed it)
+          if (!startsWith(tolower(current_lemma), particle)) {
+            tokens$lemma[head_idx] = paste0(particle, current_lemma)
+          }
+        }
+      }
+    }
+  }
+
+  # --------------------------------------------------------------------------
+  # Handle reflexive pronouns (Dutch-specific preprocessing)
+  # --------------------------------------------------------------------------
+  # If reflexive_as_patient = TRUE, we temporarily allow "zich" and "zichzelf"
+  # to be treated as valid agents/patients by adding them to the accepted POS
+  # check. We do this by re-tagging reflexive pronouns that are direct objects
+  # (obj relation) as a special marker, so the rules pick them up.
+  #
+  # This captures constructions like "Migranten verdedigen zichzelf" where
+  # "zichzelf" is a genuine object, distinct from inherent reflexives like
+  # "zich verzetten" (where "zich" is expl:pv, not obj).
+
+  if (reflexive_as_patient){
+    # Only re-tag reflexive pronouns that are actual objects (obj/iobj),
+    # not inherent reflexives (expl:pv)
+    refl_idx = which(tokens$token %in% c("zich", "zichzelf", "mezelf", "jezelf",
+                                          "onszelf", "hemzelf", "haarzelf") &
+                     tokens$dep_rel %in% c("obj", "iobj"))
+    if (length(refl_idx) > 0) {
+      if (verbose) cat("Re-tagging", length(refl_idx), "reflexive objects for patient extraction...\n")
+      # Temporarily re-tag as NOUN so agent_patient_pos filter includes them
+      tokens$pos[refl_idx] = "NOUN"
+    }
   }
 
   # --------------------------------------------------------------------------
@@ -162,32 +236,53 @@ extract_motifs = function(tokens,
   }
 
   # --------------------------------------------------------------------------
-  # Handle appositional modifiers
+  # Handle appositional modifiers (appos_child column)
   # --------------------------------------------------------------------------
-  # If use_appos = TRUE, we expand the entity list to include tokens that are
-  # linked to known entities via appositional modifier relations ('appos').
-  # E.g., in "Mijn broer Emil won", if entity = "Emil", we also consider
-  # "broer" as equivalent to the entity for extraction purposes.
+  # If use_appos = TRUE, we add an 'appos_child' column to tokens.
+  # This follows the original semgram approach: for each token that has an
+  # appos-dependent matching an entity, that token's appos_child is set to
+  # "appos_child". The extraction rules then use
+  #   OR(token = entities, appos_child = "appos_child")
+  # to match either direct entity tokens or their appositional heads.
+  # This is sentence-scoped: "broer" only counts as equivalent to "Emil" in
+  # the sentence where the apposition actually occurs, not globally.
+
+  tokens$appos_child = NA_character_
 
   if (use_appos){
-    appos_tokens = tokens[tokens$dep_rel == "appos", ]
-    for (ent in entities) {
-      # Find heads of appos relations where the entity is the appos modifier
-      appos_heads = appos_tokens[appos_tokens$token == ent, "head_token_id", drop = FALSE]
-      if (nrow(appos_heads) > 0) {
-        for (j in 1:nrow(appos_heads)) {
-          head_id = appos_heads$head_token_id[j]
-          # Find what token this head_id corresponds to (within same doc/sentence)
-          head_row = appos_tokens[appos_tokens$token == ent, ]
-          if (nrow(head_row) > 0) {
-            d_id = head_row$doc_id[j]
-            s_id = head_row$sentence_id[j]
-            head_tok = tokens[tokens$doc_id == d_id &
-                              tokens$sentence_id == s_id &
-                              tokens$token_id == head_id, "token"]
-            if (nrow(head_tok) > 0) {
-              entities = unique(c(entities, head_tok$token))
-            }
+    # Find all appos relations
+    appos_rows = tokens[tokens$dep_rel == "appos", ]
+
+    if (nrow(appos_rows) > 0) {
+      for (i in 1:nrow(appos_rows)) {
+        # The appos child token (e.g., "Emil" in "Mijn broer Emil")
+        child_token = appos_rows$token[i]
+        child_doc   = appos_rows$doc_id[i]
+        child_sent  = appos_rows$sentence_id[i]
+        head_tid    = appos_rows$head_token_id[i]
+
+        # If this appos child is one of our entities, mark the HEAD as appos_child
+        if (child_token %in% entities) {
+          head_idx = which(tokens$doc_id == child_doc &
+                           tokens$sentence_id == child_sent &
+                           tokens$token_id == head_tid)
+          if (length(head_idx) > 0) {
+            tokens$appos_child[head_idx] = "appos_child"
+          }
+        }
+
+        # Also check the reverse: if the HEAD is an entity, mark the appos child
+        # This handles cases like "De minister Schoof" where we search for "minister"
+        # and want to also catch "Schoof" as equivalent
+        head_row = tokens[tokens$doc_id == child_doc &
+                          tokens$sentence_id == child_sent &
+                          tokens$token_id == head_tid, ]
+        if (nrow(head_row) > 0 && head_row$token[1] %in% entities) {
+          child_idx = which(tokens$doc_id == child_doc &
+                            tokens$sentence_id == child_sent &
+                            tokens$token_id == appos_rows$token_id[i])
+          if (length(child_idx) > 0) {
+            tokens$appos_child[child_idx] = "appos_child"
           }
         }
       }

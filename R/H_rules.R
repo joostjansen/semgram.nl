@@ -9,7 +9,7 @@ NULL
 H_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = agent_patient_pos,
                 label = "Possession", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nmod:poss",
                          label = "Entity", fill = F),
                 children(pos = agent_patient_pos, relation = c("conj", "appos"),
@@ -34,7 +34,7 @@ H_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 H_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = agent_patient_pos,
                 label = "Possession", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nmod",
                          label = "Entity", fill = F,
                          children(pos = "ADP", lemma = "van", relation = "case")),
@@ -58,7 +58,7 @@ H_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 
 H_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = c("VERB", "AUX"), lemma = "hebben",
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F),
                 children(pos = agent_patient_pos,
@@ -83,7 +83,7 @@ H_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Example: "Jan en Emil hebben een huis." (H_huis)
 
 H_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN", "PRON"),
@@ -112,7 +112,7 @@ H_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 
 H_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = c("VERB", "AUX"),
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F),
                 children(pos = c("VERB", "AUX"), relation = "xcomp",
@@ -140,7 +140,7 @@ H_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Example: "Jan en Emil kwamen en hadden een taart." (H_taart)
 
 H_6 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN", "PRON"),

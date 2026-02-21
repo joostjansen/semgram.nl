@@ -11,7 +11,7 @@ a_6 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
                 label = "action", fill = F,
                 not_children(relation = "nsubj", depth = 1),
                 parents(pos = verb_pos,
-                        children(token = entities,
+                        children(OR(token = entities, appos_child = "appos_child"),
                                  relation = "nsubj",
                                  label = "Entity", fill = F))
   )

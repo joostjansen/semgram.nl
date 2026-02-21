@@ -10,7 +10,7 @@ NULL
 
 a_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   # UD Dutch style: entity --obl:agent--> verb, with 'door' as case child
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "obl:agent",
                 label = "Entity", fill = F,
                 parents(pos = verb_pos,

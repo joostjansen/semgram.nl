@@ -31,13 +31,15 @@ The original `semgram` was designed for English and relies on ClearNLP-style dep
 
 1. **V2 Word Order**: Dutch is a V2 language — the finite verb comes second in main clauses, but final in subordinate clauses. spaCy's UD models handle this correctly in the parse tree, so the dependency-based rules work regardless of surface word order.
 
-2. **Separable Verbs** (*scheidbare werkwoorden*): Dutch has many separable prefix verbs (e.g., "opbellen" → "belde op"). In spaCy's UD output, the particle is marked with `compound:prt`. The lemmatizer correctly maps these to the full infinitive.
+2. **Separable Verbs** (*scheidbare werkwoorden*): Dutch has many separable prefix verbs (e.g., "opbellen" → "belde op"). In spaCy's UD output, the particle is marked with `compound:prt`. In main clauses, spaCy's lemmatizer often produces only the base verb ("bellen"), losing the particle meaning. `semgram.nl` includes a preprocessing step (`merge_separable_verbs = TRUE` by default) that reconstructs the full verb lemma by merging `compound:prt` particles back into the verb: "bellen" + "op" → "opbellen". This is essential for accurate Dutch action extraction.
 
 3. **Copular Constructions**: In UD Dutch, copular verbs ("zijn", "worden", "lijken", "blijken", "schijnen") are **not** the head of the clause. Instead, the predicate (adjective or noun) is the head, and the copula is attached via `cop`. This is the most significant structural difference from the English ClearNLP style, where the verb is always the head.
 
 4. **Door-Passives**: Dutch uses "door" (equivalent to English "by") to introduce agents in passive sentences. In UD, this is marked with the `obl:agent` relation directly, rather than requiring traversal through `agent` → `pobj`.
 
 5. **Van-Possessives**: The "van" (of) construction for possession ("de auto van Emil") uses `nmod` with a `case` child for "van".
+
+6. **Reflexive Pronouns**: Dutch uses "zich" (inherent reflexive, `expl:pv`) and "zichzelf" (true reflexive object, `obj`). Inherent reflexives ("zich verzetten") are correctly excluded — "zich" is part of the verb, not a patient. True reflexive objects ("zichzelf verdedigen") can optionally be captured as patients via `reflexive_as_patient = TRUE`.
 
 ## Installation
 
@@ -152,7 +154,7 @@ extract_motifs(tokens = tokens5, entities = c("auto"), markup = TRUE)
 
 ## Function Parameters
 
-The main function `extract_motifs()` accepts the same parameters as the original `semgram`, with Dutch-specific defaults:
+The main function `extract_motifs()` accepts the same parameters as the original `semgram`, plus Dutch-specific additions:
 
 - `tokens`: Parsed tokens data.frame (UD-style dependencies from Dutch spaCy)
 - `entities`: Entity/entities to extract motifs for (default: `"*"` = all)
@@ -164,6 +166,8 @@ The main function `extract_motifs()` accepts the same parameters as the original
 - `get_aux_verbs`: Treat auxiliary verbs as actions (default: `FALSE`)
 - `pron_as_ap`: Allow pronouns as agents/patients (default: `FALSE`)
 - `use_appos`: Treat appositional modifiers as entity equivalents (default: `TRUE`)
+- `merge_separable_verbs`: **Dutch-specific.** Merge `compound:prt` particles into verb lemmas (default: `TRUE`). E.g., "bellen" + "op" → "opbellen".
+- `reflexive_as_patient`: **Dutch-specific.** Allow reflexive pronouns ("zichzelf") as patients (default: `FALSE`). Only applies to true reflexive objects, not inherent reflexives ("zich").
 - `lowercase`: Lowercase all tokens (default: `FALSE`)
 - `verbose`: Print progress messages (default: `FALSE`)
 
@@ -190,6 +194,14 @@ For best results with Dutch text, use:
 - `nl_core_news_sm` (fastest, 12MB)
 
 All models are trained on UD Dutch Alpino and LassySmall corpora and produce UD-style dependency labels.
+
+## Known Limitations
+
+1. **R-pronouns** ("er", "daar", "waar"): In constructions like "hij praat erover" ("he talks about it"), the referent of "er" is not resolved. This is an anaphora/coreference resolution problem beyond the scope of dependency parsing. The original English semgram has the same limitation with pronoun references ("he talked about it"). Enabling `pron_as_ap = TRUE` can partially mitigate this at the cost of noisier results.
+
+2. **Stative vs. eventive passive**: No distinction is made between "worden"-passives (eventive: "hij wordt gebeld" = he is being called) and "zijn"-passives (stative: "het is gesloten" = it is closed). Both are treated as treatments. This matches the original semgram's behavior for English.
+
+3. **Coreference resolution**: Like the original semgram, this package operates at the sentence level and does not resolve cross-sentence references. If an entity is referred to by a pronoun in a subsequent sentence, that sentence's motifs will not be captured.
 
 ## Attribution
 

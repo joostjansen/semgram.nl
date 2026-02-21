@@ -9,7 +9,7 @@ NULL
 aP_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "action", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F),
                 children(pos = agent_patient_pos,
@@ -33,7 +33,7 @@ aP_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Rule aP_2: Patient as object, entity as conj of subject
 
 aP_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN", "PRON"),
@@ -65,7 +65,7 @@ aP_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 aP_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "action", fill = F,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "obl:agent",
                          label = "Entity", fill = F),
                 children(pos = c("NOUN", "PROPN", "PRON"),
@@ -90,7 +90,7 @@ aP_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 
 aP_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F),
                 children(pos = verb_pos, relation = "xcomp",
@@ -127,7 +127,7 @@ aP_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
                                   relation = c("conj", "appos"),
                                   label = "Patient", req = F, depth = 3, fill = F)),
                 parents(pos = verb_pos,
-                        children(token = entities,
+                        children(OR(token = entities, appos_child = "appos_child"),
                                  relation = "nsubj",
                                  label = "Entity", fill = F))
   )

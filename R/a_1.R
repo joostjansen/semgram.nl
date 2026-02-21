@@ -10,7 +10,7 @@ a_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = verb_pos,
                 label = "action", fill = F,
                 not_children(relation = "nsubj", pos = verb_pos),
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F)
   )

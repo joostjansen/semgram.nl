@@ -12,7 +12,7 @@ be_1 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = c("ADJ"),
                 label = "characterization", fill = F,
                 children(relation = "cop"),
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F)
   )
@@ -35,7 +35,7 @@ be_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = c("NOUN", "PROPN"),
                 label = "characterization", fill = F,
                 children(relation = "cop"),
-                children(token = entities,
+                children(OR(token = entities, appos_child = "appos_child"),
                          relation = "nsubj",
                          label = "Entity", fill = F)
   )
@@ -54,7 +54,7 @@ be_2 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Example: "Jan en Emil zijn vriendelijk." (be_vriendelijk)
 
 be_3 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN", "PRON"),
@@ -82,7 +82,7 @@ be_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
   rule = tquery(pos = "ADJ",
                 relation = "amod",
                 label = "characterization", fill = F,
-                parents(token = entities,
+                parents(OR(token = entities, appos_child = "appos_child"),
                         label = "Entity", fill = F)
   )
 
@@ -101,7 +101,7 @@ be_4 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### Dutch adaptation: 'appos' relation is the same in UD Dutch
 
 be_5 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "appos",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN"),
@@ -127,7 +127,7 @@ be_6 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
                 label = "characterization", fill = F,
                 parents(pos = c("ADJ", "NOUN", "PROPN"),
                         children(relation = "cop"),
-                        children(token = entities,
+                        children(OR(token = entities, appos_child = "appos_child"),
                                  relation = "nsubj",
                                  label = "Entity", fill = F))
   )
@@ -146,7 +146,7 @@ be_6 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
 ##### (be_entity = TRUE): "De winnaar was Emil." (be_winnaar)
 
 be_7 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "nsubj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN"),
@@ -172,7 +172,7 @@ be_8 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
                 relation = "xcomp",
                 label = "characterization", fill = F,
                 parents(pos = verb_pos,
-                        children(token = entities,
+                        children(OR(token = entities, appos_child = "appos_child"),
                                  relation = "nsubj",
                                  label = "Entity", fill = F))
   )

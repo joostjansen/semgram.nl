@@ -1,7 +1,7 @@
 Package: semgram.nl
 Type: Package
 Title: Extracting Semantic Motifs from Dutch Textual Data
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("Oscar", "Stuhler", role = "aut",
            comment = c(ORCID = "0000-0001-7391-1743",

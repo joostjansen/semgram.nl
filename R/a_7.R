@@ -6,7 +6,7 @@ NULL
 ##### Example: "Jan en Emil willen vragen." (vragen)
 
 a_7 = function(tokens, entities, verb_pos, agent_patient_pos, extract){
-  rule = tquery(token = entities,
+  rule = tquery(OR(token = entities, appos_child = "appos_child"),
                 relation = "conj",
                 label = "Entity", fill = F,
                 parents(pos = c("NOUN", "PROPN", "PRON"),
