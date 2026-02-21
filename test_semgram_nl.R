@@ -37,7 +37,7 @@ spacy_initialize(model = "nl_core_news_lg")
 # --------------------------------------------------------------------------
 
 articles <- list(
-
+  
   # Article 1: EU illegale immigratie gedaald (Jan 2026)
   list(
     id = "nos_2598384",
@@ -58,7 +58,7 @@ articles <- list(
       "belang van migratiedeals met landen net buiten de EU."
     )
   ),
-
+  
   # Article 2: Buurten veranderen door migratie (Oct 2025)
   list(
     id = "nos_2586818",
@@ -78,7 +78,7 @@ articles <- list(
       "bepleit hard in te zetten op het leren van Nederlands."
     )
   ),
-
+  
   # Article 3: Aantal mensen dat migreert opnieuw gedaald (Jul 2025)
   list(
     id = "nos_2573640",
@@ -97,7 +97,7 @@ articles <- list(
       "Kamer in met strengere asielwetten."
     )
   ),
-
+  
   # Article 4: Migranten staan nodeloos aan de kant (Jun 2025)
   list(
     id = "nos_2572524",
@@ -116,7 +116,7 @@ articles <- list(
       "kennis van de Nederlandse taal belangrijk."
     )
   ),
-
+  
   # Article 5: Nederlanders genuanceerder over migratie (Apr 2025)
   list(
     id = "nos_2561886",
@@ -187,38 +187,10 @@ results <- extract_motifs(
   motif_classes = c("t", "a", "be", "H", "At", "aP"),
   markup = TRUE,
   add_sentence = TRUE,
-  merge_separable_verbs = TRUE,   # NEW in v0.2.0: reconstruct separable verbs
-  reflexive_as_patient = FALSE,   # NEW in v0.2.0: set TRUE to capture "zichzelf" etc.
-  use_appos = TRUE,               # Sentence-scoped appos_child matching (restored in v0.2.0)
+  use_appos = TRUE,
   lowercase = FALSE,
   verbose = TRUE
 )
-
-# --------------------------------------------------------------------------
-# Optional: Compare with vs without separable verb merging
-# --------------------------------------------------------------------------
-
-cat("\n=== Separable verb impact comparison ===\n")
-
-results_no_merge <- extract_motifs(
-  tokens = all_tokens,
-  entities = entities,
-  motif_classes = c("a"),
-  markup = TRUE,
-  merge_separable_verbs = FALSE,
-  verbose = FALSE
-)
-
-cat(sprintf("  Actions WITH separable verb merging:    %d\n", nrow(results$actions)))
-cat(sprintf("  Actions WITHOUT separable verb merging: %d\n", nrow(results_no_merge$actions)))
-
-if (nrow(results$actions) > 0 && nrow(results_no_merge$actions) > 0) {
-  merged_verbs <- setdiff(results$actions$action, results_no_merge$actions$action)
-  if (length(merged_verbs) > 0) {
-    cat("  Verbs that changed due to merging:\n")
-    for (v in merged_verbs) cat(sprintf("    %s\n", v))
-  }
-}
 
 # --------------------------------------------------------------------------
 # Display results
